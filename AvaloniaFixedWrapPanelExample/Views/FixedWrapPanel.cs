@@ -111,7 +111,7 @@ namespace AvaloniaFixedWrapPanelExample.Views
             double itemWidth = finalSize.Width / ItemsPerLine;
             int firstInLine = 0;
             double accumulatedHeight = 0;
-            var curLineSize = new MutableSize();
+            var currentLineSize = new MutableSize();
 
             for (int i = 0; i < Children.Count; i++)
             {
@@ -121,40 +121,27 @@ namespace AvaloniaFixedWrapPanelExample.Views
                     continue;
                 }
 
-                var sz = new MutableSize(itemWidth, child.DesiredSize.Height);
-
-                if (MathUtilities.GreaterThan(curLineSize.Width + sz.Width,
-                        finalSize.Width)) // Need to switch to another line
+                MutableSize itemSize = new(itemWidth, child.DesiredSize.Height);
+                if (MathUtilities.GreaterThan(currentLineSize.Width + itemSize.Width, finalSize.Width))
                 {
-                    ArrangeLine(accumulatedHeight, curLineSize.Height, firstInLine, i, itemWidth);
-
-                    accumulatedHeight += curLineSize.Height;
-                    curLineSize = sz;
-
-                    if (MathUtilities.GreaterThan(sz.Width,
-                            finalSize
-                                .Width)) // The element is wider then the constraint - give it a separate line                    
-                    {
-                        // Switch to next line which only contain one element
-                        ArrangeLine(accumulatedHeight, sz.Height, i, ++i, itemWidth);
-
-                        accumulatedHeight += sz.Height;
-                        curLineSize = new MutableSize();
-                    }
-
+                    // Need to switch to another line
+                    ArrangeLine(accumulatedHeight, currentLineSize.Height, firstInLine, i, itemWidth);
+                    accumulatedHeight += currentLineSize.Height;
+                    currentLineSize = itemSize;
                     firstInLine = i;
                 }
-                else // Continue to accumulate a line
+                else
                 {
-                    curLineSize.Width += sz.Width;
-                    curLineSize.Height = Max(sz.Height, curLineSize.Height);
+                    // Continue to accumulate a line
+                    currentLineSize.Width += itemSize.Width;
+                    currentLineSize.Height = Max(itemSize.Height, currentLineSize.Height);
                 }
             }
 
-            // Arrange the last line, if any
             if (firstInLine < Children.Count)
             {
-                ArrangeLine(accumulatedHeight, curLineSize.Height, firstInLine, Children.Count, itemWidth);
+                // Arrange the last line, if any
+                ArrangeLine(accumulatedHeight, currentLineSize.Height, firstInLine, Children.Count, itemWidth);
             }
 
             return finalSize;
