@@ -1,3 +1,6 @@
+// This source file is adapted from the Avalonia WrapPanel. 
+// (https://github.com/AvaloniaUI/Avalonia) 
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
