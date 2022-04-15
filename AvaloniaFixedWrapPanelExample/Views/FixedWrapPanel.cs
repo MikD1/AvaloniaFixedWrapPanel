@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Layout;
 using Avalonia.Utilities;
 using static System.Math;
 
@@ -69,54 +68,42 @@ namespace AvaloniaFixedWrapPanelExample.Views
         protected override Size MeasureOverride(Size constraint)
         {
             double itemWidth = constraint.Width / ItemsPerLine;
-            var children = Children;
-            var curLineSize = new UVSize();
-            var panelSize = new UVSize();
-            var uvConstraint = new UVSize(constraint.Width, constraint.Height);
+            MutableSize currentLineSize = new();
+            MutableSize panelSize = new();
+            Size lineConstraint = new(constraint.Width, constraint.Height);
+            Size childConstraint = new(itemWidth, constraint.Height);
 
-            var childConstraint = new Size(itemWidth, constraint.Height);
-
-            for (int i = 0, count = children.Count; i < count; i++)
+            for (int i = 0, count = Children.Count; i < count; i++)
             {
-                var child = children[i];
-                if (child != null)
+                IControl child = Children[i];
+                if (child is null)
                 {
-                    // Flow passes its own constraint to children
-                    child.Measure(childConstraint);
+                    continue;
+                }
 
-                    // This is the size of the child in UV space
-                    var sz = new UVSize(itemWidth, child.DesiredSize.Height);
+                child.Measure(childConstraint);
+                Size childSize = new(itemWidth, child.DesiredSize.Height);
 
-                    if (MathUtilities.GreaterThan(curLineSize.U + sz.U,
-                            uvConstraint.U)) // Need to switch to another line
-                    {
-                        panelSize.U = Max(curLineSize.U, panelSize.U);
-                        panelSize.V += curLineSize.V;
-                        curLineSize = sz;
-
-                        if (MathUtilities.GreaterThan(sz.U,
-                                uvConstraint
-                                    .U)) // The element is wider then the constraint - give it a separate line                    
-                        {
-                            panelSize.U = Max(sz.U, panelSize.U);
-                            panelSize.V += sz.V;
-                            curLineSize = new UVSize();
-                        }
-                    }
-                    else // Continue to accumulate a line
-                    {
-                        curLineSize.U += sz.U;
-                        curLineSize.V = Max(sz.V, curLineSize.V);
-                    }
+                if (MathUtilities.GreaterThan(currentLineSize.Width + childSize.Width, lineConstraint.Width))
+                {
+                    // Need to switch to another line
+                    panelSize.Width = Max(currentLineSize.Width, panelSize.Width);
+                    panelSize.Height += currentLineSize.Height;
+                    currentLineSize = new(childSize);
+                }
+                else
+                {
+                    // Continue to accumulate a line
+                    currentLineSize.Width += childSize.Width;
+                    currentLineSize.Height = Max(childSize.Height, currentLineSize.Height);
                 }
             }
 
             // The last line size, if any should be added
-            panelSize.U = Max(curLineSize.U, panelSize.U);
-            panelSize.V += curLineSize.V;
+            panelSize.Width = Max(currentLineSize.Width, panelSize.Width);
+            panelSize.Height += currentLineSize.Height;
 
-            // Go from UV space to W/H space
-            return new Size(panelSize.Width, panelSize.Height);
+            return panelSize.ToSize();
         }
 
         /// <inheritdoc/>
@@ -127,8 +114,8 @@ namespace AvaloniaFixedWrapPanelExample.Views
             int firstInLine = 0;
             double accumulatedV = 0;
             double itemU = itemWidth;
-            var curLineSize = new UVSize();
-            var uvFinalSize = new UVSize(finalSize.Width, finalSize.Height);
+            var curLineSize = new MutableSize();
+            var uvFinalSize = new MutableSize(finalSize.Width, finalSize.Height);
             bool useItemU = true;
 
             for (int i = 0; i < children.Count; i++)
@@ -136,33 +123,33 @@ namespace AvaloniaFixedWrapPanelExample.Views
                 var child = children[i];
                 if (child != null)
                 {
-                    var sz = new UVSize(itemWidth, child.DesiredSize.Height);
+                    var sz = new MutableSize(itemWidth, child.DesiredSize.Height);
 
-                    if (MathUtilities.GreaterThan(curLineSize.U + sz.U,
-                            uvFinalSize.U)) // Need to switch to another line
+                    if (MathUtilities.GreaterThan(curLineSize.Width + sz.Width,
+                            uvFinalSize.Width)) // Need to switch to another line
                     {
-                        ArrangeLine(accumulatedV, curLineSize.V, firstInLine, i, useItemU, itemU);
+                        ArrangeLine(accumulatedV, curLineSize.Height, firstInLine, i, useItemU, itemU);
 
-                        accumulatedV += curLineSize.V;
+                        accumulatedV += curLineSize.Height;
                         curLineSize = sz;
 
-                        if (MathUtilities.GreaterThan(sz.U,
+                        if (MathUtilities.GreaterThan(sz.Width,
                                 uvFinalSize
-                                    .U)) // The element is wider then the constraint - give it a separate line                    
+                                    .Width)) // The element is wider then the constraint - give it a separate line                    
                         {
                             // Switch to next line which only contain one element
-                            ArrangeLine(accumulatedV, sz.V, i, ++i, useItemU, itemU);
+                            ArrangeLine(accumulatedV, sz.Height, i, ++i, useItemU, itemU);
 
-                            accumulatedV += sz.V;
-                            curLineSize = new UVSize();
+                            accumulatedV += sz.Height;
+                            curLineSize = new MutableSize();
                         }
 
                         firstInLine = i;
                     }
                     else // Continue to accumulate a line
                     {
-                        curLineSize.U += sz.U;
-                        curLineSize.V = Max(sz.V, curLineSize.V);
+                        curLineSize.Width += sz.Width;
+                        curLineSize.Height = Max(sz.Height, curLineSize.Height);
                     }
                 }
             }
@@ -170,7 +157,7 @@ namespace AvaloniaFixedWrapPanelExample.Views
             // Arrange the last line, if any
             if (firstInLine < children.Count)
             {
-                ArrangeLine(accumulatedV, curLineSize.V, firstInLine, children.Count, useItemU, itemU);
+                ArrangeLine(accumulatedV, curLineSize.Height, firstInLine, children.Count, useItemU, itemU);
             }
 
             return finalSize;
@@ -186,36 +173,34 @@ namespace AvaloniaFixedWrapPanelExample.Views
                 var child = children[i];
                 if (child != null)
                 {
-                    var childSize = new UVSize(child.DesiredSize.Width, child.DesiredSize.Height);
-                    double layoutSlotU = useItemU ? itemU : childSize.U;
+                    var childSize = new Size(child.DesiredSize.Width, child.DesiredSize.Height);
+                    double layoutSlotU = useItemU ? itemU : childSize.Width;
                     child.Arrange(new Rect(u, v, layoutSlotU, lineV));
                     u += layoutSlotU;
                 }
             }
         }
 
-        private struct UVSize
+        private struct MutableSize
         {
-            internal UVSize(double width, double height)
+            internal MutableSize(double width, double height)
             {
-                U = V = 0d;
                 Width = width;
                 Height = height;
             }
 
-            internal double U;
-            internal double V;
-
-            internal double Width
+            internal MutableSize(Size size)
             {
-                get => U;
-                set => U = value;
+                Width = size.Width;
+                Height = size.Height;
             }
 
-            internal double Height
+            internal double Width;
+            internal double Height;
+
+            internal Size ToSize()
             {
-                get => V;
-                set => V = value;
+                return new Size(Width, Height);
             }
         }
     }
