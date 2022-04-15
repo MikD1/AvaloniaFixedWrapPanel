@@ -106,78 +106,73 @@ namespace AvaloniaFixedWrapPanelExample.Views
             return panelSize.ToSize();
         }
 
-        /// <inheritdoc/>
         protected override Size ArrangeOverride(Size finalSize)
         {
             double itemWidth = finalSize.Width / ItemsPerLine;
-            var children = Children;
             int firstInLine = 0;
-            double accumulatedV = 0;
-            double itemU = itemWidth;
+            double accumulatedHeight = 0;
             var curLineSize = new MutableSize();
-            var uvFinalSize = new MutableSize(finalSize.Width, finalSize.Height);
-            bool useItemU = true;
 
-            for (int i = 0; i < children.Count; i++)
+            for (int i = 0; i < Children.Count; i++)
             {
-                var child = children[i];
-                if (child != null)
+                IControl child = Children[i];
+                if (child == null)
                 {
-                    var sz = new MutableSize(itemWidth, child.DesiredSize.Height);
+                    continue;
+                }
 
-                    if (MathUtilities.GreaterThan(curLineSize.Width + sz.Width,
-                            uvFinalSize.Width)) // Need to switch to another line
+                var sz = new MutableSize(itemWidth, child.DesiredSize.Height);
+
+                if (MathUtilities.GreaterThan(curLineSize.Width + sz.Width,
+                        finalSize.Width)) // Need to switch to another line
+                {
+                    ArrangeLine(accumulatedHeight, curLineSize.Height, firstInLine, i, itemWidth);
+
+                    accumulatedHeight += curLineSize.Height;
+                    curLineSize = sz;
+
+                    if (MathUtilities.GreaterThan(sz.Width,
+                            finalSize
+                                .Width)) // The element is wider then the constraint - give it a separate line                    
                     {
-                        ArrangeLine(accumulatedV, curLineSize.Height, firstInLine, i, useItemU, itemU);
+                        // Switch to next line which only contain one element
+                        ArrangeLine(accumulatedHeight, sz.Height, i, ++i, itemWidth);
 
-                        accumulatedV += curLineSize.Height;
-                        curLineSize = sz;
-
-                        if (MathUtilities.GreaterThan(sz.Width,
-                                uvFinalSize
-                                    .Width)) // The element is wider then the constraint - give it a separate line                    
-                        {
-                            // Switch to next line which only contain one element
-                            ArrangeLine(accumulatedV, sz.Height, i, ++i, useItemU, itemU);
-
-                            accumulatedV += sz.Height;
-                            curLineSize = new MutableSize();
-                        }
-
-                        firstInLine = i;
+                        accumulatedHeight += sz.Height;
+                        curLineSize = new MutableSize();
                     }
-                    else // Continue to accumulate a line
-                    {
-                        curLineSize.Width += sz.Width;
-                        curLineSize.Height = Max(sz.Height, curLineSize.Height);
-                    }
+
+                    firstInLine = i;
+                }
+                else // Continue to accumulate a line
+                {
+                    curLineSize.Width += sz.Width;
+                    curLineSize.Height = Max(sz.Height, curLineSize.Height);
                 }
             }
 
             // Arrange the last line, if any
-            if (firstInLine < children.Count)
+            if (firstInLine < Children.Count)
             {
-                ArrangeLine(accumulatedV, curLineSize.Height, firstInLine, children.Count, useItemU, itemU);
+                ArrangeLine(accumulatedHeight, curLineSize.Height, firstInLine, Children.Count, itemWidth);
             }
 
             return finalSize;
         }
 
-        private void ArrangeLine(double v, double lineV, int start, int end, bool useItemU, double itemU)
+        private void ArrangeLine(double y, double height, int start, int end, double width)
         {
-            var children = Children;
-            double u = 0;
-
+            double x = 0;
             for (int i = start; i < end; i++)
             {
-                var child = children[i];
-                if (child != null)
+                IControl child = Children[i];
+                if (child == null)
                 {
-                    var childSize = new Size(child.DesiredSize.Width, child.DesiredSize.Height);
-                    double layoutSlotU = useItemU ? itemU : childSize.Width;
-                    child.Arrange(new Rect(u, v, layoutSlotU, lineV));
-                    u += layoutSlotU;
+                    continue;
                 }
+
+                child.Arrange(new Rect(x, y, width, height));
+                x += width;
             }
         }
 
