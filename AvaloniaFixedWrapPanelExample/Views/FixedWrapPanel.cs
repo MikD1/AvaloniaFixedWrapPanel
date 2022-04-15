@@ -22,18 +22,16 @@ namespace AvaloniaFixedWrapPanelExample.Views
             set => SetValue(ItemsPerLineProperty, value);
         }
 
-        IInputElement? INavigableContainer.GetControl(NavigationDirection direction, IInputElement? from, bool wrap)
+        IInputElement INavigableContainer.GetControl(NavigationDirection direction, IInputElement? from, bool wrap)
         {
-            var children = Children;
             int index = from is not null ? Children.IndexOf((IControl) from) : -1;
-
             switch (direction)
             {
                 case NavigationDirection.First:
                     index = 0;
                     break;
                 case NavigationDirection.Last:
-                    index = children.Count - 1;
+                    index = Children.Count - 1;
                     break;
                 case NavigationDirection.Next:
                     ++index;
@@ -55,14 +53,12 @@ namespace AvaloniaFixedWrapPanelExample.Views
                     break;
             }
 
-            if (index >= 0 && index < children.Count)
+            if (index >= 0 && index < Children.Count)
             {
-                return children[index];
+                return Children[index];
             }
-            else
-            {
-                return null;
-            }
+
+            return this;
         }
 
         protected override Size MeasureOverride(Size constraint)
