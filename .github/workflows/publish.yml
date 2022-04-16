@@ -15,8 +15,8 @@ jobs:
       with:
         dotnet-version: 6.0.x
     
-    - name: Pack
-      run: dotnet pack AvaloniaFixedWrapPanel/AvaloniaFixedWrapPanel.csproj -c Release -o out
+    - name: Build
+      run: dotnet build AvaloniaFixedWrapPanel/AvaloniaFixedWrapPanel.csproj -c Release -o out
     
     - name: Publish
       run: dotnet nuget push ./out/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_ORG_TOKEN}}
