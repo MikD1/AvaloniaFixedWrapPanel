@@ -7,7 +7,7 @@ using Avalonia.Input;
 using Avalonia.Utilities;
 using static System.Math;
 
-namespace AvaloniaFixedWrapPanelExample.Views
+namespace AvaloniaFixedWrapPanel
 {
     public class FixedWrapPanel : Panel, INavigableContainer
     {

@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>Mikhail Doshevsky</Authors>
     <Description>Avalonia WrapPanel with fixed number of items per line</Description>
     <Copyright>2022 Mikhail Doshevsky</Copyright>
