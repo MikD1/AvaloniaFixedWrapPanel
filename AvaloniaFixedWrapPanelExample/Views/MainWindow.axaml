@@ -38,7 +38,7 @@
                         <DataTemplate>
                             <Border Background="#393E46" Margin="2">
                                 <TextBlock Text="{Binding .}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Padding="20, 40"/>
+                                           Padding="10, 20"/>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
