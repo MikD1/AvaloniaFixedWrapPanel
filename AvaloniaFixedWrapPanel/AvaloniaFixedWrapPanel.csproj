@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.0.1</Version>
+    <Authors>Mikhail Doshevsky</Authors>
+    <Description>Avalonia WrapPanel with fixed number of items per line</Description>
+    <Copyright>2022 Mikhail Doshevsky</Copyright>
+    <PackageProjectUrl>https://github.com/MikD1/AvaloniaFixedWrapPanel/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MikD1/AvaloniaFixedWrapPanel.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Avalonia</PackageTags>
+    <PackageId>MikD1.AvaloniaFixedWrapPanel</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.13" />
+  </ItemGroup>
+
+</Project>
